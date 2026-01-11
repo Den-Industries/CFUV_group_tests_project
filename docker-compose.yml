@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: survey_admin
+      POSTGRES_PASSWORD: survey_pass
+      POSTGRES_DB: survey_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: auth_db
+    volumes:
+      - mongodb_data:/data/db
+
+  central_module:
+    build: 
+      context: ./central_module
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgresql://survey_admin:survey_pass@postgres:5432/survey_db?sslmode=disable"
+      REDIS_URL: "redis://redis:6379"
+      AUTH_SERVICE_URL: "http://auth_module:8080"
+
+  auth_module:
+    build: 
+      context: ./auth_module
+    ports:
+      - "8080:8080"
+    environment:
+      MONGODB_URI: "mongodb://admin:admin123@mongodb:27017/auth_db?authSource=admin"
+      REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: "your-super-secret-jwt-key-change-in-production"
+      # OAuth Configuration (add your credentials here)
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      OAUTH_REDIRECT_URL: "http://localhost/api/auth/oauth/callback"
+    depends_on:
+      - mongodb
+      - redis
+
+  web_client:
+    build:
+      context: ./web_client
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - central_module
+      - auth_module
+
+  telegram_bot:
+    build:
+      context: ./telegram_bot
+    environment:
+      REDIS_URL: "redis://redis:6379"
+      AUTH_API: "http://auth_module:8080/api/v1"
+      CENTRAL_API: "http://central_module:8000"
+    depends_on:
+      - redis
+      - auth_module
+      - central_module
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
