@@ -1,386 +1,623 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey App - Тестирование</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div id="app">
-        <!-- Шапка -->
-        <header class="header">
-            <div class="container">
-                <div class="logo">
-                    <i class="fas fa-poll"></i>
-                    <h1>Survey App</h1>
-                </div>
-                <div class="user-info" id="userInfo" style="display: none;">
-                    <span id="username"></span>
-                    <button class="btn btn-logout" onclick="logout()">
-                        <i class="fas fa-sign-out-alt"></i> Выйти
-                    </button>
-                    <button class="btn btn-admin" id="adminPanelBtn" onclick="showAdminPanel()" style="display: none;">
-                        <i class="fas fa-cog"></i> Панель админа
-                    </button>
-                    <button class="btn btn-logout" onclick="approveDeviceCodeLogin()">
-                        <i class="fas fa-check-circle"></i> Подтвердить вход по коду
-                    </button>
-                </div>
-                <div class="auth-buttons" id="authButtons">
-                    <button class="btn btn-primary" onclick="showAuthModal()">
-                        <i class="fas fa-sign-in-alt"></i> Войти
-                    </button>
-                </div>
+
+<!-- для браузеров -->
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<title>Survey App - Тестирование</title>
+
+		<!-- css -->
+		<link rel="stylesheet" href="/css/style.css">
+		<!-- иконки -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		<!-- шрифты -->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+	</head>
+
+<!-- визуал -->
+	<body>
+
+		<!-- сам сайт -->
+		<div id="app">
+
+			<!-- шапка -->
+			<header class="header">
+
+				<div class="container">
+
+					<!-- логотип -->
+					<div class="logo">
+						<i class="fas fa-poll"></i>
+						<h1>Survey App</h1>
+					</div>
+
+					<!-- инф-я о пользователе (видна только после авторизации) -->
+					<div class="user-info" id="userInfo" style="display: none;">
+
+						<!-- имя -->
+						<span id="username"></span>
+
+						<!-- кнопка выхода -->
+						<button class="btn btn-logout" onclick="logout()">
+							<i class="fas fa-sign-out-alt"></i> Выйти
+						</button>
+
+						<!-- кнопка панели админа (видна если пользователь - админ) -->
+						<button class="btn btn-admin" id="adminPanelBtn" onclick="showAdminPanel()" style="display: none;">
+							<i class="fas fa-cog"></i> Панель администратора
+						</button>
+
+						<!-- кнопка подтверждения входа -->
+						<button class="btn btn-logout" onclick="approveDeviceCodeLogin()">
+							<i class="fas fa-check-circle"></i> Подтвердить вход по коду
+						</button>
+					</div>
+
+					<!-- кнопка авторизации -->
+					<div class="auth-buttons" id="authButtons">
+
+						<!-- кнопка входа (откроет модальное окно авторизации) -->
+						<button class="btn btn-primary" onclick="showAuthModal()">
+							<i class="fas fa-sign-in-alt"></i> Войти
+						</button>
+
+					</div>
+
+				</div>
+
+			</header>
+
+			<!-- основной контент -->
+			<main class="container">
+
+				<!-- приветственный экран -->
+				<div id="welcomeScreen" class="welcome-screen">
+
+					<!-- главный баннер -->
+					<div class="hero">
+            <h2>Добро пожаловать в систему тестирования</h2>
+            <p>Пройдите тесты, проверьте свои знания и отслеживайте прогресс</p>
+
+						<!-- "кнопки" демонстрации\рекламы функционала -->
+            <div class="features">
+
+							<!-- тесты -->
+              <div class="feature">
+                <i class="fas fa-graduation-cap"></i>
+                <h3>Разнообразные тесты</h3>
+                <p>Тесты по программированию, математике, логике и другим темам</p>
+              </div>
+
+							<!-- прогресс -->
+              <div class="feature">
+                <i class="fas fa-chart-line"></i>
+                <h3>Отслеживание прогресса</h3>
+                <p>Следите за своими результатами и улучшайте показатели</p>
+              </div>
+
+							<!-- результаты -->
+              <div class="feature">
+                <i class="fas fa-bolt"></i>
+                <h3>Мгновенные результаты</h3>
+                <p>Получайте результаты сразу после завершения теста</p>
+              </div>
+						
             </div>
-        </header>
+					
+					</div>
 
-        <!-- Основной контент -->
-        <main class="container">
-            <!-- Приветственный экран -->
-            <div id="welcomeScreen" class="welcome-screen">
-                <div class="hero">
-                    <h2>Добро пожаловать в систему тестирования</h2>
-                    <p>Пройдите тесты, проверьте свои знания и отслеживайте прогресс</p>
-                    <div class="features">
-                        <div class="feature">
-                            <i class="fas fa-graduation-cap"></i>
-                            <h3>Разнообразные тесты</h3>
-                            <p>Тесты по программированию, математике, логике и другим темам</p>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-chart-line"></i>
-                            <h3>Отслеживание прогресса</h3>
-                            <p>Следите за своими результатами и улучшайте показатели</p>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-bolt"></i>
-                            <h3>Мгновенные результаты</h3>
-                            <p>Получайте результаты сразу после завершения теста</p>
-                        </div>
-                    </div>
-                </div>
+				</div>
+
+				<!-- экран тестов (виден после авторизации) -->
+				<div id="testsScreen" class="tests-screen" style="display: none;">
+
+					<!-- шапка -->
+					<div class="tests-header">
+
+						<h2><i class="fas fa-list-alt"></i> Доступные тесты</h2>
+
+						<!-- элементы управления -->
+						<div class="controls">
+
+							<!-- поиск -->
+							<div class="search-box">
+								<input type="text" id="searchInput" placeholder="Поиск тестов...">
+								<i class="fas fa-search"></i>
+							</div>
+
+							<!-- обновление страницы для подгрузки инф-и -->
+							<button class="btn btn-primary" onclick="loadTests()">
+								<i class="fas fa-sync-alt"></i> Обновить
+							</button>
+						
+						</div>
+					
+					</div>
+
+					<!-- список тестов -->
+					<div id="testsList" class="tests-list">
+						<!-- подгружается из джавы -->
+					</div>
+
+					<!-- детали теста -->
+					<div id="testDetails" class="test-details" style="display: none;">
+
+						<!-- кнопка выхода -->
+						<button class="btn btn-back" onclick="hideTestDetails()">
+							<i class="fas fa-arrow-left"></i> Назад к списку
+						</button>
+
+						<!-- сама инф-я о тесте -->
+						<div id="testContent">
+							<!-- подгружается из джавы -->
+						</div>
+
+					</div>
+				
+				</div>
+
+				<!-- экран результатов (вызывается по кнопке)-->
+				<div id="resultsScreen" class="results-screen" style="display: none;">
+
+					<h2><i class="fas fa-chart-bar"></i> Результаты теста</h2>
+
+					<!-- инф-я о результатах -->
+					<div id="resultsContent">
+						<!-- подгружается из джавы -->
+					</div>
+				
+				</div>
+
+				<!-- панель админа (вызывается по кнопке)-->
+				<div id="adminPanel" class="admin-panel" style="display: none;">
+
+					<!-- шапка -->
+					<div class="admin-header">
+						<h2><i class="fas fa-user-shield"></i> Панель администратора</h2>
+						
+						<!-- кнопка выхода -->
+						<button class="btn btn-back" onclick="hideAdminPanel()">
+							<i class="fas fa-arrow-left"></i> Назад
+						</button>
+					
+					</div>
+
+					<!-- вкладки (открываются по клику) -->
+					<div class="admin-tabs">
+
+						<!-- управление тестами -->
+						<button class="admin-tab-btn active" onclick="showAdminTab('manageTests')">
+							<i class="fas fa-list"></i> Управление тестами
+						</button>
+
+						<!-- редактирование вопросов -->
+						<button class="admin-tab-btn" onclick="showAdminTab('editQuestions')">
+							<i class="fas fa-question-circle"></i> Редактирование вопросов
+						</button>
+        
+						<!-- результаты -->
+						<button class="admin-tab-btn" onclick="showAdminTab('testResults')">
+							<i class="fas fa-chart-bar"></i> Результаты тестов
+						</button>
+        
+						<!-- управление пользователями -->
+						<button class="admin-tab-btn" onclick="showAdminTab('manageUsers')">
+							<i class="fas fa-user-cog"></i> Управление пользователями
+						</button>
+					
+					</div>
+
+					<!-- контент для вкладок -->
+					
+					<!-- управления пользователями -->
+					<div id="manageUsersTab" class="admin-tab-content">
+
+						<div class="user-management">
+
+							<!-- форма создания пользователя -->
+							<div class="user-form-container">
+
+								<h3><i class="fas fa-user-plus"></i> Создание нового пользователя</h3>
+
+								<!-- пункты формы -->
+								<div class="form-grid">
+
+									<!-- имя -->
+									<div class="form-group">
+
+										<label for="newUsername"><i class="fas fa-user"></i> Имя пользователя</label>
+										<input type="text" id="newUsername" placeholder="Введите логин" required>
+									</div>
+
+									<!-- почта -->
+									<div class="form-group">
+										<label for="newEmail"><i class="fas fa-envelope"></i> Email</label>
+										<input type="email" id="newEmail" placeholder="email@example.com">
+									</div>
+
+									<!-- пароль -->
+									<div class="form-group">
+										<label for="newPassword"><i class="fas fa-lock"></i> Пароль</label>
+										<input type="password" id="newPassword" placeholder="Введите пароль" required>
+									</div>
+
+									<!-- роль (пользователь\администратор) -->
+									<div class="form-group">
+										<label for="newRole"><i class="fas fa-user-tag"></i> Роль</label>
+
+										<select id="newRole">
+											<option value="user">Пользователь</option>
+											<option value="admin">Администратор</option>
+										</select>
+
+									</div>
+								
+								</div>
+
+								<!-- кнопка создания -->
+								<button class="btn btn-success" onclick="createUser()">
+									<i class="fas fa-save"></i> Создать пользователя
+								</button>
+
+							</div>
+
+							<!-- список пользователей -->
+							<div class="users-list-container">
+
+								<!-- функционал для админа -->
+								<div class="admin-controls">
+
+									<h3><i class="fas fa-users"></i> Все пользователи</h3>
+
+									<!-- кнопка обновления -->
+									<button class="btn btn-primary" onclick="loadUsers()">
+										<i class="fas fa-sync-alt"></i> Обновить
+									</button>
+
+								</div>
+
+								<!-- сам список -->
+								<div id="usersList">
+									<!-- подгружается из джавы -->
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+					<!-- модальное окно редактирования пользователя -->
+					<div id="editUserModal" class="modal">
+
+						<div class="modal-content user-modal">
+
+							<!-- крестик для закрытия окна -->
+							<span class="close" onclick="hideEditUserModal()">&times;</span>
+
+							<h2><i class="fas fa-user-edit"></i> Редактирование пользователя</h2>
+
+							<!-- изменение имени -->
+							<div class="form-group">
+								<label for="editUsername"><i class="fas fa-user"></i> Имя пользователя</label>
+								<input type="text" id="editUsername" placeholder="Username">
+							</div>
+
+							<!-- изменение почты -->
+							<div class="form-group">
+								<label for="editEmail"><i class="fas fa-envelope"></i> Email</label>
+								<input type="email" id="editEmail" placeholder="email@example.com">
+							</div>
+
+							<!-- изменение пароля -->
+							<div class="form-group">
+								<label for="editPassword"><i class="fas fa-key"></i> Новый пароль (оставьте пустым, чтобы не менять)</label>
+								<input type="password" id="editPassword" placeholder="Новый пароль">
+							</div>
+
+							<!-- изменение роли -->
+							<div class="form-group">
+								<label for="editRole"><i class="fas fa-user-tag"></i> Роль</label>
+								<select id="editRole">
+									<option value="user">Пользователь</option>
+									<option value="admin">Администратор</option>
+								</select>
+
+							</div>
+
+							<!-- функционал окна -->
+							<div class="modal-actions">
+
+								<!-- кнопка сохранения изменений -->
+								<button class="btn btn-primary" onclick="saveUserChanges()">
+									<i class="fas fa-save"></i> Сохранить изменения
+								</button>
+
+								<!-- кнопка сброса пароля -->
+								<button class="btn btn-danger" onclick="resetUserPassword()">
+									<i class="fas fa-redo"></i> Сбросить пароль
+								</button>
+
+								<!-- кнопка удаления пользователя -->
+								<button class="btn btn-warning" onclick="deleteCurrentUser()">
+									<i class="fas fa-trash"></i> Удалить пользователя
+								</button>
+
+							</div>
+
+						</div>
+
+					</div>
+
+					<!-- управление тестами -->
+					<div id="manageTestsTab" class="admin-tab-content active">
+
+						<!-- функционал для админа -->
+						<div class="admin-controls">
+
+							<h3><i class="fas fa-tasks"></i> Управление тестами</h3>
+
+							<!-- кнопка обновления списка -->
+							<button class="btn btn-primary" onclick="loadAllTests()">
+								<i class="fas fa-sync-alt"></i> Обновить список
+							</button>
+
+							<!-- кнопка создания теста -->
+							<button class="btn btn-success" onclick="showTestForm()">
+								<i class="fas fa-plus-circle"></i> Создать новый тест
+							</button>
+
+						</div>
+
+						<!-- форма создания\редактирования теста -->
+						<div id="testFormContainer" class="test-form-container" style="display: none;">
+
+							<div class="admin-form">
+
+								<h3 id="testFormTitle"><i class="fas fa-edit"></i> Создание нового теста</h3>
+
+								<!-- название -->
+								<div class="form-group">
+									<label for="testTitle"><i class="fas fa-heading"></i> Название теста</label>
+									<input type="text" id="testTitle" placeholder="Введите название теста">
+								</div>
+
+								<!-- описание -->
+								<div class="form-group">
+									<label for="testDescription"><i class="fas fa-align-left"></i> Описание теста</label>
+									<textarea id="testDescription" placeholder="Введите описание теста" rows="3"></textarea>
+								</div>
+
+								<!-- статус теста -->
+								<div class="form-group">
+									<label>
+										<input type="checkbox" id="testActive" checked>
+										<i class="fas fa-toggle-on"></i> Тест активен
+									</label>
+								</div>
+
+								<!-- функционал формы -->
+								<div class="form-actions">
+
+									<!-- кнопка сохранения теста -->
+									<button class="btn btn-primary" onclick="saveTest()">
+										<i class="fas fa-save"></i> Сохранить тест
+									</button>
+
+									<!-- кнопка выхода -->
+									<button class="btn btn-secondary" onclick="hideTestForm()">
+										<i class="fas fa-times"></i> Отмена
+									</button>
+								</div>
+
+							</div>
+
+						</div>
+
+						<!-- список всех тестов -->
+						<div id="allTestsList" class="tests-list">
+							<!-- заполняется динамически -->
+						</div>
+
+					</div>
+
+					<!-- редактирование вопросов теста -->
+					<div id="editQuestionsTab" class="admin-tab-content">
+
+						<!-- функционал для админа -->
+						<div class="admin-controls">
+
+							<h3><i class="fas fa-question-circle"></i> Редактирование вопросов теста</h3>
+
+							<!-- выбор теста -->
+							<div class="form-group">
+								<label for="selectTestForQuestions"><i class="fas fa-list"></i> Выберите тест</label>
+
+								<div style="display: flex; gap: 10px; align-items: center;">
+
+									<select id="selectTestForQuestions" onchange="loadTestQuestionsForEdit()" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+										<option value="">-- Выберите тест --</option>
+									</select>
+
+									<button class="btn btn-primary" onclick="loadTestsForQuestionEdit()">
+										<i class="fas fa-sync-alt"></i> Обновить
+									</button>
+
+								</div>
+
+							</div>
+
+						</div>
+
+						<!-- вопросы выбранного теста -->
+						<div id="testQuestionsEditList" class="questions-list">
+							<!-- подгружаются из джавы -->
+						</div>
+
+					</div>
+
+					<!-- результаты тестов -->
+					<div id="testResultsTab" class="admin-tab-content">
+
+						<!-- функционал для админа -->
+						<div class="admin-controls">
+
+							<h3><i class="fas fa-chart-bar"></i> Результаты тестов</h3>
+
+							<!-- кнопка обновления -->
+							<button class="btn btn-primary" onclick="loadTestResults()">
+								<i class="fas fa-sync-alt"></i> Обновить результаты
+							</button>
+
+						</div>
+
+						<!-- результаты теста -->
+						<div id="testResultsList" class="results-list">
+							<!-- подгружаются из джавы -->
+						</div>
+
+					</div>
+
+				</div>
+
+				<!-- модальное окно для добавления вопроса -->
+				<div id="questionModal" class="modal">
+
+					<div class="modal-content">
+
+						<!-- крестик для выхода из окна -->
+						<span class="close" onclick="hideQuestionModal()">&times;</span>
+
+						<h2><i class="fas fa-question"></i> Добавление вопроса</h2>
+
+						<!-- текст вопроса -->
+						<div class="form-group">
+							<label for="questionText"><i class="fas fa-question-circle"></i> Текст вопроса</label>
+							<textarea id="questionText" placeholder="Введите текст вопроса" rows="3"></textarea>
+						</div>
+
+						<!-- тип вопроса -->
+						<input type="hidden" id="questionType" value="single_choice">
+
+						<!-- баллы за вопрос -->
+						<div class="form-group">
+							<label for="questionPoints"><i class="fas fa-star"></i> Баллы за вопрос</label>
+							<input type="number" id="questionPoints" value="1" min="1">
+						</div>
+
+						<!-- варианты ответов -->
+						<div id="answersSection">
+
+							<h4><i class="fas fa-list-ol"></i> Варианты ответов</h4>
+
+							<!-- варианты ответов -->
+							<div id="answersList">
+								<!-- подгружаются из джавы -->
+							</div>
+
+							<!-- кнопка добавления варианта ответа -->
+							<button class="btn btn-secondary" onclick="addAnswerField()">
+								<i class="fas fa-plus"></i> Добавить вариант ответа
+							</button>
+
+						</div>
+
+						<!-- кнопка сохранения вопроса -->
+						<button class="btn btn-primary btn-block" onclick="saveQuestion()">
+							<i class="fas fa-save"></i> Сохранить вопрос
+						</button>
+
+					</div>
+
+				</div>
+
+			</main>
+
+			<!-- модальное окно авторизации -->
+      <div id="authModal" class="modal">
+
+        <div class="modal-content">
+
+					<!-- крестик для выхода из окна -->
+          <span class="close" onclick="hideAuthModal()">&times;</span>
+          <h2><i class="fas fa-user-shield"></i> Авторизация</h2>
+
+					<!-- вкладки авторизации (блок сделан для добавления своего типа при необходимости) -->
+          <div class="auth-tabs">
+
+						<!-- тип - OAuth\Код -->
+            <button class="tab-btn active" onclick="showTab('oauth')">
+							<i class="fas fa-external-link-alt"></i> OAuth / Код
+            </button>
+
+          </div>
+
+					<!-- OAuth и авторизация по коду -->
+          <div id="oauthTab" class="tab-content active">
+
+						<!-- функционал вкладки (вход через авторизацию) -->
+            <div class="oauth-buttons">
+
+							<!-- кнопка входа через Yandex -->
+              <button class="btn btn-oauth yandex" onclick="oauthLogin('yandex')">
+                <i class="fab fa-yandex"></i> Войти через Yandex
+              </button>
+
+							<!-- кнопка входа через GitHub -->
+              <button class="btn btn-oauth github" onclick="oauthLogin('github')">
+                <i class="fab fa-github"></i> Войти через GitHub
+              </button>
+
+						</div>
+
+						<!-- уведомления (просто текст) -->
+						<p class="oauth-hint">Откроется новое окно для авторизации</p>
+
+            <hr style="margin: 20px 0;"> <!-- разделитель -->
+
+						<h3><i class="fas fa-key"></i> Вход по коду с другого устройства</h3>
+
+						<p class="oauth-hint">
+              Если вы уже авторизованы на другом устройстве, вы можете войти здесь по одноразовому коду.
+            </p>
+
+						<!-- функционал вкладки (вход через код с устройства) -->
+            <div class="oauth-buttons">
+              <button class="btn btn-secondary" onclick="startDeviceCodeLogin()">
+                <i class="fas fa-qrcode"></i> Получить код для входа
+              </button>
             </div>
 
-            <!-- Экран тестов (показывается после авторизации) -->
-            <div id="testsScreen" class="tests-screen" style="display: none;">
-                <div class="tests-header">
-                    <h2><i class="fas fa-list-alt"></i> Доступные тесты</h2>
-                    <div class="controls">
-                        <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="Поиск тестов...">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <button class="btn btn-primary" onclick="loadTests()">
-                            <i class="fas fa-sync-alt"></i> Обновить
-                        </button>
-                    </div>
-                </div>
+						<!-- инф-я о коде (подгружается динамически) -->
+            <p id="deviceCodeInfo" class="oauth-hint"></p>
 
-                <div id="testsList" class="tests-list">
-                    <!-- Тесты будут загружены динамически -->
-                </div>
+					</div>
 
-                <div id="testDetails" class="test-details" style="display: none;">
-                    <button class="btn btn-back" onclick="hideTestDetails()">
-                        <i class="fas fa-arrow-left"></i> Назад к списку
-                    </button>
-                    <div id="testContent">
-                        <!-- Контент теста будет загружен динамически -->
-                    </div>
-                </div>
-            </div>
+					<!-- статус авторизации (подгружается динамически) -->
+          <div class="auth-status" id="authStatus"></div>
 
-            <!-- Экран результатов -->
-            <div id="resultsScreen" class="results-screen" style="display: none;">
-                <h2><i class="fas fa-chart-bar"></i> Результаты теста</h2>
-                <div id="resultsContent"></div>
-            </div>
-            <div id="adminPanel" class="admin-panel" style="display: none;">
-    <div class="admin-header">
-        <h2><i class="fas fa-user-shield"></i> Панель администратора</h2>
-        <button class="btn btn-back" onclick="hideAdminPanel()">
-            <i class="fas fa-arrow-left"></i> Назад
-        </button>
-    </div>
+				</div>
+
+			</div>
+
+		</div>
+
+		<!-- общие скрипты -->
+		<script src="/js/auth.js"></script>
+		<script src="/js/tests.js"></script>
+		<script src="/js/main.js"></script>
     
-    <div class="admin-tabs">
-        <button class="admin-tab-btn active" onclick="showAdminTab('manageTests')">
-            <i class="fas fa-list"></i> Управление тестами
-        </button>
-        <button class="admin-tab-btn" onclick="showAdminTab('editQuestions')">
-            <i class="fas fa-question-circle"></i> Редактирование вопросов
-        </button>
-        <button class="admin-tab-btn" onclick="showAdminTab('testResults')">
-            <i class="fas fa-chart-bar"></i> Результаты тестов
-        </button>
-        <button class="admin-tab-btn" onclick="showAdminTab('manageUsers')">
-            <i class="fas fa-user-cog"></i> Управление пользователями
-        </button>
-    </div>
-    <!-- Добавляем контент для управления пользователями -->
-<div id="manageUsersTab" class="admin-tab-content">
-    <div class="user-management">
-        <!-- Форма создания пользователя -->
-        <div class="user-form-container">
-            <h3><i class="fas fa-user-plus"></i> Создание нового пользователя</h3>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="newUsername"><i class="fas fa-user"></i> Имя пользователя</label>
-                    <input type="text" id="newUsername" placeholder="Введите логин" required>
-                </div>
-                <div class="form-group">
-                    <label for="newEmail"><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="newEmail" placeholder="email@example.com">
-                </div>
-                <div class="form-group">
-                    <label for="newPassword"><i class="fas fa-lock"></i> Пароль</label>
-                    <input type="password" id="newPassword" placeholder="Введите пароль" required>
-                </div>
-                <div class="form-group">
-                    <label for="newRole"><i class="fas fa-user-tag"></i> Роль</label>
-                    <select id="newRole">
-                        <option value="user">Пользователь</option>
-                        <option value="admin">Администратор</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn btn-success" onclick="createUser()">
-                <i class="fas fa-save"></i> Создать пользователя
-            </button>
-        </div>
+		<!-- скрипты для функционала админа -->
+		<script src="/js/admin/state.js"></script>
+		<script src="/js/admin/core.js"></script>
+		<script src="/js/admin/tests.js"></script>
+		<script src="/js/admin/users.js"></script>
+		<script src="/js/admin/questions.js"></script>
+		<script src="/js/admin/results.js"></script>
+		<script src="/js/admin/exports.js"></script>
+		
+	</body>
 
-        <!-- Список пользователей -->
-        <div class="users-list-container">
-            <div class="admin-controls">
-                <h3><i class="fas fa-users"></i> Все пользователи</h3>
-                <button class="btn btn-primary" onclick="loadUsers()">
-                    <i class="fas fa-sync-alt"></i> Обновить
-                </button>
-            </div>
-            
-            <div id="usersList">
-                <!-- Таблица пользователей будет загружена динамически -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно редактирования пользователя -->
-<div id="editUserModal" class="modal">
-    <div class="modal-content user-modal">
-        <span class="close" onclick="hideEditUserModal()">&times;</span>
-        <h2><i class="fas fa-user-edit"></i> Редактирование пользователя</h2>
-        
-        <div class="form-group">
-            <label for="editUsername"><i class="fas fa-user"></i> Имя пользователя</label>
-            <input type="text" id="editUsername" placeholder="Username">
-        </div>
-        
-        <div class="form-group">
-            <label for="editEmail"><i class="fas fa-envelope"></i> Email</label>
-            <input type="email" id="editEmail" placeholder="email@example.com">
-        </div>
-        
-        <div class="form-group">
-            <label for="editRole"><i class="fas fa-user-tag"></i> Роль</label>
-            <select id="editRole">
-                <option value="user">Пользователь</option>
-                <option value="admin">Администратор</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="editPassword"><i class="fas fa-key"></i> Новый пароль (оставьте пустым, чтобы не менять)</label>
-            <input type="password" id="editPassword" placeholder="Новый пароль">
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn btn-primary" onclick="saveUserChanges()">
-                <i class="fas fa-save"></i> Сохранить изменения
-            </button>
-            <button class="btn btn-danger" onclick="resetUserPassword()">
-                <i class="fas fa-redo"></i> Сбросить пароль
-            </button>
-            <button class="btn btn-warning" onclick="deleteCurrentUser()">
-                <i class="fas fa-trash"></i> Удалить пользователя
-            </button>
-        </div>
-    </div>
-</div>
-    <!-- Управление тестами -->
-    <div id="manageTestsTab" class="admin-tab-content active">
-        <div class="admin-controls">
-            <h3><i class="fas fa-tasks"></i> Управление тестами</h3>
-            <button class="btn btn-primary" onclick="loadAllTests()">
-                <i class="fas fa-sync-alt"></i> Обновить список
-            </button>
-            <button class="btn btn-success" onclick="showTestForm()">
-                <i class="fas fa-plus-circle"></i> Создать новый тест
-            </button>
-        </div>
-        
-        <!-- Форма создания/редактирования теста -->
-        <div id="testFormContainer" class="test-form-container" style="display: none;">
-            <div class="admin-form">
-                <h3 id="testFormTitle"><i class="fas fa-edit"></i> Создание нового теста</h3>
-                <div class="form-group">
-                    <label for="testTitle"><i class="fas fa-heading"></i> Название теста</label>
-                    <input type="text" id="testTitle" placeholder="Введите название теста">
-                </div>
-                <div class="form-group">
-                    <label for="testDescription"><i class="fas fa-align-left"></i> Описание теста</label>
-                    <textarea id="testDescription" placeholder="Введите описание теста" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="testActive" checked>
-                        <i class="fas fa-toggle-on"></i> Тест активен
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-primary" onclick="saveTest()">
-                        <i class="fas fa-save"></i> Сохранить тест
-                    </button>
-                    <button class="btn btn-secondary" onclick="hideTestForm()">
-                        <i class="fas fa-times"></i> Отмена
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="allTestsList" class="tests-list">
-            <!-- Список всех тестов -->
-        </div>
-    </div>
-    
-    <!-- Редактирование вопросов теста -->
-    <div id="editQuestionsTab" class="admin-tab-content">
-        <div class="admin-controls">
-            <h3><i class="fas fa-question-circle"></i> Редактирование вопросов теста</h3>
-            <div class="form-group">
-                <label for="selectTestForQuestions"><i class="fas fa-list"></i> Выберите тест</label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="selectTestForQuestions" onchange="loadTestQuestionsForEdit()" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">-- Выберите тест --</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="loadTestsForQuestionEdit()">
-                        <i class="fas fa-sync-alt"></i> Обновить
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div id="testQuestionsEditList" class="questions-list">
-            <!-- Вопросы выбранного теста будут загружены здесь -->
-        </div>
-    </div>
-    
-    <!-- Результаты тестов -->
-    <div id="testResultsTab" class="admin-tab-content">
-        <div class="admin-controls">
-            <h3><i class="fas fa-chart-bar"></i> Результаты тестов</h3>
-            <button class="btn btn-primary" onclick="loadTestResults()">
-                <i class="fas fa-sync-alt"></i> Обновить результаты
-            </button>
-        </div>
-        <div id="testResultsList" class="results-list">
-            <!-- Результаты будут загружены здесь -->
-        </div>
-    </div>
-</div>
-
-<!-- Модальное окно для добавления вопроса -->
-<div id="questionModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="hideQuestionModal()">&times;</span>
-        <h2><i class="fas fa-question"></i> Добавление вопроса</h2>
-        
-        <div class="form-group">
-            <label for="questionText"><i class="fas fa-question-circle"></i> Текст вопроса</label>
-            <textarea id="questionText" placeholder="Введите текст вопроса" rows="3"></textarea>
-        </div>
-        
-        <input type="hidden" id="questionType" value="single_choice">
-        
-        <div class="form-group">
-            <label for="questionPoints"><i class="fas fa-star"></i> Баллы за вопрос</label>
-            <input type="number" id="questionPoints" value="1" min="1">
-        </div>
-        
-        <div id="answersSection">
-            <h4><i class="fas fa-list-ol"></i> Варианты ответов</h4>
-            <div id="answersList">
-                <!-- Варианты ответов будут добавляться здесь -->
-            </div>
-            <button class="btn btn-secondary" onclick="addAnswerField()">
-                <i class="fas fa-plus"></i> Добавить вариант ответа
-            </button>
-        </div>
-        
-        <button class="btn btn-primary btn-block" onclick="saveQuestion()">
-            <i class="fas fa-save"></i> Сохранить вопрос
-        </button>
-    </div>
-</div>
-        </main>
-
-        <!-- Модальное окно авторизации -->
-        <div id="authModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="hideAuthModal()">&times;</span>
-                <h2><i class="fas fa-user-shield"></i> Авторизация</h2>
-                
-                <div class="auth-tabs">
-                    <button class="tab-btn active" onclick="showTab('oauth')">
-                        <i class="fas fa-external-link-alt"></i> OAuth / Код
-                    </button>
-                </div>
-
-                <!-- OAuth и авторизация по коду -->
-                <div id="oauthTab" class="tab-content active">
-                    <div class="oauth-buttons">
-                        <button class="btn btn-oauth yandex" onclick="oauthLogin('yandex')">
-                            <i class="fab fa-yandex"></i> Войти через Yandex
-                        </button>
-                        <button class="btn btn-oauth github" onclick="oauthLogin('github')">
-                            <i class="fab fa-github"></i> Войти через GitHub
-                        </button>
-                    </div>
-                    <p class="oauth-hint">Откроется новое окно для авторизации</p>
-
-                    <hr style="margin: 20px 0;">
-
-                    <h3><i class="fas fa-key"></i> Вход по коду с другого устройства</h3>
-                    <p class="oauth-hint">
-                        Если вы уже авторизованы на другом устройстве, вы можете войти здесь по одноразовому коду.
-                    </p>
-                    <div class="oauth-buttons">
-                        <button class="btn btn-secondary" onclick="startDeviceCodeLogin()">
-                            <i class="fas fa-qrcode"></i> Получить код для входа
-                        </button>
-                    </div>
-                    <p id="deviceCodeInfo" class="oauth-hint"></p>
-                </div>
-
-                <div class="auth-status" id="authStatus"></div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Скрипты -->
-    <script src="/js/auth.js"></script>
-    <script src="/js/tests.js"></script>
-    <!-- Admin panel split into modules (must be loaded before main.js) -->
-    <script src="/js/admin/state.js"></script>
-    <script src="/js/admin/core.js"></script>
-    <script src="/js/admin/tests.js"></script>
-    <script src="/js/admin/users.js"></script>
-    <script src="/js/admin/questions.js"></script>
-    <script src="/js/admin/results.js"></script>
-    <script src="/js/admin/exports.js"></script>
-    <script src="/js/main.js"></script>
-</body>
 </html>

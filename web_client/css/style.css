@@ -1,1008 +1,1046 @@
-/* web_client/css/style.css */
+/* псевдокласс для выбора корневого элемента документа (используется он, а не html, для более высокого приоритета) */
 :root {
-    --primary: #4361ee;
-    --primary-dark: #3a56d4;
-    --secondary: #7209b7;
-    --success: #4cc9f0;
-    --danger: #f72585;
-    --warning: #f8961e;
-    --light: #f8f9fa;
-    --dark: #212529;
-    --gray: #6c757d;
-    --light-gray: #e9ecef;
+	/* переменные с цветами */
+  --primary: #4361ee;
+  --primary-dark: #3a56d4;
+  --secondary: #7209b7;
+  --success: #4cc9f0;
+  --danger: #f72585;
+  --warning: #f8961e;
+  --light: #f8f9fa;
+  --dark: #212529;
+  --gray: #6c757d;
+  --light-gray: #e9ecef;
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background: #f3f5f8;
-    min-height: 100vh;
-    color: var(--dark);
+  font-family: 'Inter', sans-serif;
+  background: #f3f5f8;
+  min-height: 100vh;
+  color: var(--dark);
 }
 
+/* центрирование контента */
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-/* Шапка */
+/* шапка */
 .header {
-    background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+  background: white;
+
+	/* смещение по х, смещение по у, размытие, цвет */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 15px 0;
+  position: sticky; /* шапка крепится к верху страницы */
+  top: 0;
+	/* порядок наложения. 1000 означает "очень высоко", чтобы быть поверх других элементов */
+  z-index: 1000;
 }
 
+/* шапка контента*/
 .header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+
+	/* центрирование по вертикали */
+  align-items: center;
 }
 
+/* логотип */
+/* позиция */
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+	/* центрирование по вертикали */
+  align-items: center;
+  gap: 10px;
 }
-
+/* иконка */
 .logo i {
-    font-size: 28px;
-    color: var(--primary);
+  font-size: 28px;
+  color: var(--primary);
 }
-
+/* текст */
 .logo h1 {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
+/* инф-я о пользователе */
+/* положение */
 .user-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
-
+/* имя пользователя */
 .user-info span {
-    font-weight: 500;
-    color: var(--dark);
+  font-weight: 500;
+  color: var(--dark);
 }
 
+/* положение кнопок авторизации */
 .auth-buttons {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
-/* Кнопки */
+/* кнопки */
 .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer; /* меняет курсор на руку */
+  transition: all 0.3s ease; /* плавная анимация ВСЕХ свойств за 0.3 секунды */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
+/* главенствующие кнопки (для каждой вкладки\окна своя) */
 .btn-primary {
-    background: var(--primary);
-    color: white;
+  background: var(--primary);
+  color: white;
 }
-
+/* эффект при наведении */
 .btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
+/* второстепенные кнопки (для каждой вкладки\окна свои) */
 .btn-secondary {
-    background: var(--secondary);
-    color: white;
+  background: var(--secondary);
+  color: white;
 }
 
+/* кнопка выхода */
 .btn-logout {
-    background: var(--danger);
-    color: white;
+  background: var(--danger);
+  color: white;
 }
-
+/* эффект при наведении */
 .btn-logout:hover {
-    background: #e1156d;
+  background: #e1156d;
 }
 
+/* кнопка отмены (возвращает назад) */
 .btn-back {
-    background: var(--gray);
-    color: white;
-    margin-bottom: 20px;
+  background: var(--gray);
+  color: white;
+  margin-bottom: 20px;
 }
 
+/* кнопки вкладок */
 .btn-block {
-    width: 100%;
-    justify-content: center;
+  width: 100%;
+  justify-content: center;
 }
 
-/* Главный экран */
+/* приветственный экран */
 .welcome-screen {
-    background: white;
-    border-radius: 15px;
-    padding: 40px;
-    margin: 30px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  margin: 30px auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
+/* баннер */
+/* положение */
 .hero {
-    text-align: center;
+  text-align: center;
 }
-
+/* заголовки */
 .hero h2 {
-    font-size: 36px;
-    margin-bottom: 15px;
-    color: var(--dark);
+  font-size: 36px;
+  margin-bottom: 15px;
+  color: var(--dark);
 }
-
+/* основной текст */
 .hero p {
-    font-size: 18px;
-    color: var(--gray);
-    margin-bottom: 40px;
+  font-size: 18px;
+  color: var(--gray);
+  margin-bottom: 40px;
 }
 
+/* фишки сайта (рекламки) */
+/* общее положение */
 .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
 }
-
+/* внешний вид каждой */
 .feature {
-    background: var(--light);
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    transition: transform 0.3s ease;
+  background: var(--light);
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.3s ease;
 }
-
+/* эффект при наведении */
 .feature:hover {
-    transform: translateY(-5px);
+  transform: translateY(-5px);
 }
-
+/* иконки */
 .feature i {
-    font-size: 40px;
-    color: var(--primary);
-    margin-bottom: 20px;
+  font-size: 40px;
+  color: var(--primary);
+  margin-bottom: 20px;
 }
-
+/* заголовки */
 .feature h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: var(--dark);
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: var(--dark);
 }
-
+/* основной текст */
 .feature p {
-    color: var(--gray);
-    line-height: 1.6;
+  color: var(--gray);
+  line-height: 1.6;
 }
 
-/* Экран тестов */
+/* экран тестов */
 .tests-screen {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 30px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 30px auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 
+/* шапка тестов */
 .tests-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    gap: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
-
+/* текст шапки тестов */
 .tests-header h2 {
-    font-size: 28px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+/* кнопки настройки */
 .controls {
-    display: flex;
-    gap: 15px;
-    align-items: center;
+  display: flex;
+  gap: 15px;
+  align-items: center;
 }
 
+/* поиск */
+/* позиция */
 .search-box {
-    position: relative;
+  position: relative;
 }
-
+/* поле ввода */
 .search-box input {
-    padding: 10px 40px 10px 15px;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    width: 250px;
-    font-size: 14px;
-    transition: border-color 0.3s;
+  padding: 10px 40px 10px 15px;
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  width: 250px;
+  font-size: 14px;
+  transition: border-color 0.3s;
 }
-
+/* пример (текст) */
 .search-box input:focus {
-    outline: none;
-    border-color: var(--primary);
+  outline: none;
+  border-color: var(--primary);
 }
-
+/* иконка */
 .search-box i {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--gray);
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray);
 }
 
+/* список тестов */
 .tests-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
 }
 
+/* карточка теста */
 .test-card {
-    background: var(--light);
-    border-radius: 10px;
-    padding: 20px;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    cursor: pointer;
+  background: var(--light);
+  border-radius: 10px;
+  padding: 20px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
-
+/* эффект при наведении */
 .test-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-color: var(--primary);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-
+/* заголовок */
 .test-card h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-    color: var(--dark);
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: var(--dark);
 }
-
+/* основной текст */
 .test-card p {
-    color: var(--gray);
-    margin-bottom: 15px;
-    line-height: 1.5;
+  color: var(--gray);
+  margin-bottom: 15px;
+  line-height: 1.5;
 }
-
+/* мета-данные */
 .test-meta {
-    display: flex;
-    justify-content: space-between;
-    color: var(--gray);
-    font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--gray);
+  font-size: 14px;
 }
 
+/* кнопки редактирования тестов */
 .test-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-/* Модальное окно */
+/* модальное окно */
 .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000; /* выше шапки */
+  justify-content: center;
+  align-items: center;
 }
-
+/* контент окна */
 .modal-content {
-    background: white;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 500px;
-    padding: 30px;
-    position: relative;
-    animation: modalFadeIn 0.3s;
+	background: white;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 500px;
+  padding: 30px;
+  position: relative;
+  animation: modalFadeIn 0.3s;
 }
-
+/* анимация появления */
 @keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
+/* крестик */
 .close {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 28px;
-    cursor: pointer;
-    color: var(--gray);
+  position: absolute;
+	right: 20px;
+  top: 20px;
+  font-size: 28px;
+  cursor: pointer;
+  color: var(--gray);
 }
-
+/* эффект при наведении */
 .close:hover {
-    color: var(--dark);
+  color: var(--dark);
 }
 
-/* Табы авторизации */
+/* вкладки авторизации */
 .auth-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
-    border-bottom: 2px solid var(--light-gray);
-    padding-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid var(--light-gray);
+  padding-bottom: 10px;
 }
-
+/* кнопки кладок */
 .tab-btn {
-    padding: 10px 20px;
-    background: none;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
 }
-
+/* кнопка активной вкладки */
 .tab-btn.active {
-    background: var(--primary);
-    color: white;
+  background: var(--primary);
+  color: white;
 }
-
+/* содержимое кладок */
 .tab-content {
-    display: none;
+  display: none;
 }
-
+/* содержимое активной вкладки */
 .tab-content.active {
-    display: block;
+  display: block;
 }
 
+/* формы */
 .form-group {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
-
+/* заголовки полей ввода у форм */
 .form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--dark);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-
+/* поля ввода у форм */
 .form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.3s;
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
 }
-
+/* пример в поле ввода (текст) */
 .form-group input:focus {
-    outline: none;
-    border-color: var(--primary);
+  outline: none;
+  border-color: var(--primary);
 }
 
 .demo-hint {
-    text-align: center;
-    margin-top: 15px;
-    color: var(--gray);
-    font-size: 14px;
-    font-style: italic;
+  text-align: center;
+  margin-top: 15px;
+  color: var(--gray);
+  font-size: 14px;
+  font-style: italic;
 }
 
 /* OAuth кнопки */
 .oauth-buttons {
-    display: flex;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+/* кнопка типа авторизации OAuth */
+.btn-oauth {
+  justify-content: center;
+  padding: 12px;
+  font-size: 16px;
+}
+/* яндекс */
+.btn-oauth.yandex {
+  background: #ffcc00;
+  color: #000;
+}
+/* эффект при наведении */
+.btn-oauth.yandex:hover {
+  background: #e6b800;
+}
+/* гитхаб */
+.btn-oauth.github {
+  background: #333;
+  color: white;
+}
+/* эффект при наведении */
+.btn-oauth.github:hover {
+  background: #24292e;
+}
+/* общий эффект при наведении */
+.oauth-hint {
+  text-align: center;
+  color: var(--gray);
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* статус авторизации */
+.auth-status {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  display: none;
+}
+/* если статус: успешно */
+.auth-status.success {
+  background: #d4edda;
+  color: #155724;
+  display: block;
+}
+/* если статус: ошибка */
+.auth-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  display: block;
+}
+
+/* футер */
+.footer {
+  background: var(--dark);
+  color: white;
+  padding: 20px 0;
+  margin-top: 50px;
+}
+/* положение */
+.footer .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+/* ссылки */
+.footer-links {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+/* текст ссылок */
+.footer-links a {
+  color: var(--light-gray);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+/* эффект при наведении */
+.footer-links a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* адаптивность */
+/* медиа-запрос (меняет стили под мобильное устройство) */
+@media (max-width: 768px) {
+  .header .container {
     flex-direction: column;
     gap: 15px;
-    margin: 20px 0;
-}
+  }
 
-.btn-oauth {
-    justify-content: center;
-    padding: 12px;
-    font-size: 16px;
-}
+  .features {
+    grid-template-columns: 1fr;
+  }
 
-.btn-oauth.yandex {
-    background: #ffcc00;
-    color: #000;
-}
+  .tests-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.btn-oauth.yandex:hover {
-    background: #e6b800;
-}
+  .search-box input {
+    width: 100%;
+  }
 
-.btn-oauth.github {
-    background: #333;
-    color: white;
-}
+  .tests-list {
+    grid-template-columns: 1fr;
+  }
 
-.btn-oauth.github:hover {
-    background: #24292e;
-}
-
-.oauth-hint {
+  .footer .container {
+    flex-direction: column;
     text-align: center;
-    color: var(--gray);
-    font-size: 14px;
-    margin-top: 10px;
+  }
 }
 
-/* Статус авторизации */
-.auth-status {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    display: none;
-}
-
-.auth-status.success {
-    background: #d4edda;
-    color: #155724;
-    display: block;
-}
-
-.auth-status.error {
-    background: #f8d7da;
-    color: #721c24;
-    display: block;
-}
-
-/* Футер */
-.footer {
-    background: var(--dark);
-    color: white;
-    padding: 20px 0;
-    margin-top: 50px;
-}
-
-.footer .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.footer-links {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-
-.footer-links a {
-    color: var(--light-gray);
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-.footer-links a:hover {
-    color: white;
-    text-decoration: underline;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .header .container {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .features {
-        grid-template-columns: 1fr;
-    }
-    
-    .tests-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .search-box input {
-        width: 100%;
-    }
-    
-    .tests-list {
-        grid-template-columns: 1fr;
-    }
-    
-    .footer .container {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-
-/* Загрузка */
+/* загрузка */
 .loading {
-    text-align: center;
-    padding: 40px;
-    color: var(--gray);
+  text-align: center;
+  padding: 40px;
+  color: var(--gray);
 }
-
+/* иконка */
 .loading i {
-    font-size: 40px;
-    margin-bottom: 20px;
-    color: var(--primary);
+  font-size: 40px;
+  margin-bottom: 20px;
+  color: var(--primary);
 }
 
-/* Вопросы теста */
+/* вопросы теста */
 .question {
-    background: var(--light);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+  background: var(--light);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
-
+/* заголовки */
 .question h4 {
-    margin-bottom: 15px;
-    font-size: 18px;
+  margin-bottom: 15px;
+  font-size: 18px;
 }
 
+/* ответы */
+/* положение */
 .answers {
-    display: grid;
-    gap: 10px;
+  display: grid;
+  gap: 10px;
 }
-
+/* визуальные параметры */
 .answer-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: white;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
 }
-
+/* эффект при наведении */
 .answer-option:hover {
-    border-color: var(--primary);
-    background: #f0f5ff;
+  border-color: var(--primary);
+  background: #f0f5ff;
 }
-
+/* если выбрали */
 .answer-option.selected {
-    border-color: var(--primary);
-    background: #e6f0ff;
+	border-color: var(--primary);
+  background: #e6f0ff;
 }
-
+/* поле ввода ответа */
 .answer-option input {
-    margin: 0;
+  margin: 0;
 }
 
-/* Результаты */
+/* результаты */
 .results-screen {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 30px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 30px auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
-
+/* заголовки */
 .results-screen h2 {
-    text-align: center;
-    margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
-
+/* сами результаты */
 .result-card {
-    background: var(--primary);
-    color: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    margin-bottom: 30px;
+  background: var(--primary);
+  color: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 30px;
 }
-
+/* баллы */
 .result-score {
-    font-size: 48px;
-    font-weight: 700;
-    margin: 20px 0;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 20px 0;
 }
-
+/* уведомление */
 .result-message {
-    font-size: 18px;
-    margin-bottom: 20px;
+  font-size: 18px;
+  margin-bottom: 20px;
 }
-
+/* детали */
 .result-details {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    color: var(--dark);
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  color: var(--dark);
 }
 
-/* Админ-панель */
+/* админ-панель */
+/* кнопки админ-панели */
 .btn-admin {
-    background: #9c27b0;
-    color: white;
+  background: #9c27b0;
+  color: white;
 }
-
+/* эффект при наведении */
 .btn-admin:hover {
-    background: #7b1fa2;
+  background: #7b1fa2;
 }
-
+/* вид админ-панели */
 .admin-panel {
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    margin: 30px auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  margin: 30px auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
-
+/* шапка админ-панели */
 .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--light-gray);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--light-gray);
 }
-
+/* вкладки админ-панели */
 .admin-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
-    border-bottom: 2px solid var(--light-gray);
-    padding-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid var(--light-gray);
+  padding-bottom: 10px;
 }
-
+/* кнопки вкладок админ-панели */
 .admin-tab-btn {
-    padding: 10px 20px;
-    background: none;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-
+/* кнопка текущей вкладки */
 .admin-tab-btn.active {
-    background: var(--primary);
-    color: white;
+  background: var(--primary);
+	color: white;
 }
-
+/* содержимое вкладки */
 .admin-tab-content {
-    display: none;
+  display: none;
 }
-
+/* содержимое текущей вкладки */
 .admin-tab-content.active {
-    display: block;
+  display: block;
 }
-
+/* формы админ-панели */
 .admin-form {
-    background: var(--light);
-    padding: 25px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+  background: var(--light);
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
-
+/* заголовки */
 .admin-form h3 {
-    margin-bottom: 20px;
-    color: var(--dark);
+  margin-bottom: 20px;
+  color: var(--dark);
 }
-
+/* поля для текста */
 .admin-form textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    font-size: 16px;
-    font-family: inherit;
-    resize: vertical;
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
 }
-
+/* текущая форма */
 .admin-form select {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--light-gray);
-    border-radius: 8px;
-    font-size: 16px;
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  font-size: 16px;
 }
 
+/* выбор вопросов */
 .questions-section {
-    background: white;
-    border: 2px solid var(--light-gray);
-    border-radius: 10px;
-    padding: 20px;
-    margin-top: 30px;
+  background: white;
+  border: 2px solid var(--light-gray);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 30px;
 }
-
+/* вопросы */
 .question-item {
-    background: var(--light);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--primary);
+  background: var(--light);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border-left: 4px solid var(--primary);
 }
-
+/* заголовки */
 .question-item h4 {
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-
+/* кнопки редактирования вопросов */
 .question-actions {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
+/* ответы */
 .answer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    padding: 8px;
-    background: white;
-    border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 5px;
 }
-
+/* ответы из группы вариантов */
 .answer-item input[type="checkbox"] {
-    margin: 0;
+  margin: 0;
 }
-
+/* ответы текстовым полем */
 .answer-item input[type="text"] {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid var(--light-gray);
-    border-radius: 5px;
+	flex: 1;
+	padding: 8px;
+  border: 1px solid var(--light-gray);
+  border-radius: 5px;
 }
 
+/* кнопка выхода */
 .remove-btn {
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
 }
-
+/* кнопки для админа */
 .admin-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-/* Исправляем отображение кнопок в карточке теста */
+/* кнопки в карточке теста */
 .test-admin-card {
-    background: var(--light);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--primary);
-    position: relative;
-    overflow: hidden;
+  background: var(--light);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  border-left: 4px solid var(--primary);
+  position: relative;
+  overflow: hidden;
 }
-
+/* шапка вкладки с тестами */
 .test-admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-
+/* кнопки взаимодействия с тестами */
 .test-admin-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 15px;
-    align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+  align-items: center;
 }
 
-/* Кнопки админ-панели */
+/* мини кнопки админ-панели */
 .btn-admin-small {
-    padding: 8px 12px;
-    font-size: 13px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
-
+/* иконка */
 .btn-admin-small i {
-    font-size: 12px;
+  font-size: 12px;
 }
 
-/* Адаптивность для маленьких экранов */
+/* адаптивность под мобильное устройство */
 @media (max-width: 768px) {
-    .test-admin-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .btn-admin-small {
-        width: 100%;
-        justify-content: center;
-    }
+  .test-admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-admin-small {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
-/* Улучшаем отображение статуса */
+/* статус */
 .test-status {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
 }
-
-/* Мета-информация теста */
+/* мета-информация теста */
 .test-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    color: var(--gray);
-    font-size: 14px;
-    margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  color: var(--gray);
+  font-size: 14px;
+  margin: 10px 0;
 }
 
 .test-meta span {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-/* Формы управления */
+/* формы управления */
 .admin-form {
-    background: var(--light);
-    padding: 25px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    max-width: 600px;
+  background: var(--light);
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  max-width: 600px;
 }
-
+/* заголовки */
 .admin-form h3 {
-    margin-bottom: 20px;
-    color: var(--dark);
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--light-gray);
+  margin-bottom: 20px;
+  color: var(--dark);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--light-gray);
 }
 
-/* Улучшаем отображение пользователей */
+/* отображение пользователей */
 .user-management {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
 }
-
+/* форма пользователей */
 .user-form-container {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
 }
-
+/* заголовки */
 .user-form-container h3 {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+	gap: 10px;
 }
 
-/* Таблица пользователей */
+/* таблица пользователей */
 .users-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-
+/* строки */
 .users-table th {
-    background: var(--primary);
-    color: white;
-    padding: 15px;
-    text-align: left;
-    font-weight: 600;
+  background: var(--primary);
+  color: white;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
 }
-
+/* столбцы */
 .users-table td {
-    padding: 15px;
-    border-bottom: 1px solid var(--light-gray);
+  padding: 15px;
+  border-bottom: 1px solid var(--light-gray);
 }
-
+/* эффект при наведении */
 .users-table tr:hover {
-    background: var(--light);
+  background: var(--light);
 }
 
+/* кнопки взаимодействия с пользователями */
 .user-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-/* Модальное окно редактирования */
+/* модальное окно редактирования */
 .modal-content.user-modal {
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-/* Бейджи и метки */
+/* бейджи и метки */
 .badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-left: 8px;
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
 }
-
+/* если я */
 .badge-you {
-    background: #4caf50;
-    color: white;
+  background: #4caf50;
+  color: white;
 }
-
+/* если админ */
 .badge-admin {
-    background: #9c27b0;
-    color: white;
+  background: #9c27b0;
+  color: white;
 }
-
+/* если другой пользователь */
 .badge-user {
-    background: #2196f3;
-    color: white;
+  background: #2196f3;
+  color: white;
 }
 
-/* Сетка форм */
+/* сетка форм */
 .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-/* Кнопки в таблице */
+/* кнопки в таблице */
 .btn-sm {
-    padding: 6px 12px;
-    font-size: 13px;
+  padding: 6px 12px;
+  font-size: 13px;
 }
 
-/* Анимации */
+/* анимации появления*/
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
+/* карточка пользователя-админа */
 .user-card, .test-admin-card {
-    animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.3s ease;
 }
 
-/* Иконки статусов */
+/* иконки статусов */
 .status-icon {
-    margin-right: 5px;
+  margin-right: 5px;
 }
-
+/* активный */
 .status-active .status-icon {
-    color: #4caf50;
+  color: #4caf50;
 }
-
+/* неактивный */
 .status-inactive .status-icon {
-    color: #f44336;
+  color: #f44336;
 }
