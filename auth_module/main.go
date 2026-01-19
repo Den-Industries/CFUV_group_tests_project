@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +23,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Структуры данных
 type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Username     string             `bson:"username" json:"username"`
@@ -32,11 +34,11 @@ type User struct {
 }
 
 type TokenResponse struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
-	TokenType    string    `json:"token_type"`
-	ExpiresIn    int64     `json:"expires_in"`
-	User         User      `json:"user"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int64  `json:"expires_in"`
+	User         User   `json:"user"`
 }
 
 type LoginRequest struct {
@@ -62,14 +64,19 @@ type UpdateUserRequest struct {
 	Role     string `json:"role,omitempty"`
 }
 
-// Глобальные переменные
+type DeviceCodeData struct {
+	Status       string `json:"status"`
+	UserID       string `json:"user_id,omitempty"`
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+}
+
 var (
-	db         *mongo.Database
-	usersColl  *mongo.Collection
-	jwtSecret  []byte
-	redisClient interface{} // Placeholder for Redis if needed
-	
-	// OAuth credentials
+	db        *mongo.Database
+	usersColl *mongo.Collection
+	jwtSecret []byte
+
+	redisClient        *redis.Client
 	yandexClientID     string
 	yandexClientSecret string
 	githubClientID     string
@@ -77,7 +84,6 @@ var (
 	oauthRedirectURL   string
 )
 
-// Инициализация OAuth credentials
 func initOAuth() {
 	yandexClientID = os.Getenv("YANDEX_CLIENT_ID")
 	yandexClientSecret = os.Getenv("YANDEX_CLIENT_SECRET")
@@ -89,7 +95,98 @@ func initOAuth() {
 	}
 }
 
-// Инициализация MongoDB
+func initRedis() {
+	redisURL := os.Getenv("REDIS_URL")
+	if redisURL == "" {
+		redisURL = "redis://redis:6379"
+	}
+
+	u, err := url.Parse(redisURL)
+	if err != nil {
+		log.Printf("Invalid REDIS_URL: %v", err)
+		return
+	}
+
+	addr := u.Host
+	password := ""
+	if u.User != nil {
+		if p, ok := u.User.Password(); ok {
+			password = p
+		}
+	}
+
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: password,
+		DB:       0,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		log.Printf("Failed to connect to Redis: %v", err)
+		redisClient = nil
+	} else {
+		log.Println("Connected to Redis for auth tokens")
+	}
+}
+
+func generateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
+func storeRefreshToken(ctx context.Context, refreshToken string, userID primitive.ObjectID) error {
+	if redisClient == nil {
+		return nil
+	}
+	key := "refresh:" + refreshToken
+	return redisClient.Set(ctx, key, userID.Hex(), 7*24*time.Hour).Err()
+}
+
+func getUserByRefreshToken(ctx context.Context, refreshToken string) (*User, error) {
+	if redisClient == nil {
+		return nil, fmt.Errorf("redis not initialized")
+	}
+	key := "refresh:" + refreshToken
+	userIDHex, err := redisClient.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil, fmt.Errorf("invalid refresh token")
+		}
+		return nil, err
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(userIDHex)
+	if err != nil {
+		return nil, err
+	}
+
+	var user User
+	if err := usersColl.FindOne(ctx, bson.M{"_id": objectID}).Decode(&user); err != nil {
+		return nil, err
+	}
+	redisClient.Expire(ctx, key, 7*24*time.Hour)
+	return &user, nil
+}
+
+func generateDeviceCode() (string, error) {
+	b := make([]byte, 3)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	code := int(b[0])<<16 | int(b[1])<<8 | int(b[2])
+	if code < 0 {
+		code = -code
+	}
+	code = code % 1000000
+	return fmt.Sprintf("%06d", code), nil
+}
+
 func initDB() {
 	mongoURI := os.Getenv("MONGODB_URI")
 	if mongoURI == "" {
@@ -98,35 +195,24 @@ func initDB() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:", err)
 	}
-
-	// Проверяем подключение
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal("Failed to ping MongoDB:", err)
 	}
-
 	db = client.Database("auth_db")
 	usersColl = db.Collection("users")
-
-	// Создаем индексы
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "username", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	}
 	usersColl.Indexes().CreateOne(ctx, indexModel)
-
-	// Создаем админа по умолчанию, если его нет
-	createDefaultAdmin(ctx)
-
 	log.Println("✅ MongoDB connected successfully")
 }
 
-// Создание админа по умолчанию
 func createDefaultAdmin(ctx context.Context) {
 	var admin User
 	err := usersColl.FindOne(ctx, bson.M{"username": "admin"}).Decode(&admin)
@@ -148,7 +234,6 @@ func createDefaultAdmin(ctx context.Context) {
 	}
 }
 
-// Middleware для CORS
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -164,7 +249,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Health check
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -174,7 +258,6 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Генерация JWT токена
 func generateToken(user User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":       user.ID.Hex(),
@@ -189,7 +272,6 @@ func generateToken(user User) (string, error) {
 	return token.SignedString(jwtSecret)
 }
 
-// Верификация JWT токена
 func verifyToken(tokenString string) (*User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -228,7 +310,6 @@ func verifyToken(tokenString string) (*User, error) {
 	return nil, fmt.Errorf("invalid token")
 }
 
-// Традиционная авторизация
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -260,32 +341,38 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем пароль
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
-	// Обновляем время последнего входа
 	now := time.Now()
 	usersColl.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"last_login": now}})
 	user.LastLogin = &now
 
-	// Генерируем токен
 	token, err := generateToken(user)
 	if err != nil {
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
-	// Убираем пароль из ответа
+	refreshToken, err := generateRefreshToken()
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	if err := storeRefreshToken(ctx, refreshToken, user.ID); err != nil {
+		log.Printf("Failed to store refresh token: %v", err)
+	}
+
 	userResponse := user
 	userResponse.PasswordHash = ""
 
 	response := TokenResponse{
 		AccessToken:  token,
-		RefreshToken: fmt.Sprintf("refresh.%s.%d", user.ID.Hex(), time.Now().Unix()+3600),
+		RefreshToken: refreshToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    86400,
 		User:         userResponse,
@@ -295,7 +382,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// Верификация токена
 func verifyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -325,14 +411,12 @@ func verifyHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Получение списка пользователей (только для админа)
 func getUsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Проверяем авторизацию
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -361,8 +445,6 @@ func getUsersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-
-	// Убираем пароли из всех пользователей
 	for i := range users {
 		users[i].PasswordHash = ""
 	}
@@ -371,14 +453,12 @@ func getUsersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
-// Создание пользователя (только для админа)
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Проверяем авторизацию
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -407,7 +487,6 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 		req.Role = "user"
 	}
 
-	// Хэшируем пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
@@ -435,21 +514,18 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Убираем пароль из ответа
 	user.PasswordHash = ""
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
 
-// Обновление пользователя (только для админа)
 func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Проверяем авторизацию
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -463,7 +539,6 @@ func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Извлекаем ID из пути
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -537,14 +612,12 @@ func updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// Удаление пользователя (только для админа)
 func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "DELETE" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Проверяем авторизацию
 	token := r.Header.Get("Authorization")
 	if token == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -558,7 +631,6 @@ func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Извлекаем ID из пути
 	pathParts := strings.Split(r.URL.Path, "/")
 	if len(pathParts) < 4 {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
@@ -591,7 +663,6 @@ func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Code authentication (демо)
 func codeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -611,13 +682,12 @@ func codeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	if req.Code == "" {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
-			"message":  "Code sent to email",
+			"message":   "Code sent to email",
 			"demo_code": "123456",
 		})
 		return
 	}
 
-	// В демо-режиме любой код подходит
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -625,7 +695,6 @@ func codeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
 	if err == mongo.ErrNoDocuments {
-		// Создаем нового пользователя
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 		user = User{
 			Username:     username,
@@ -643,13 +712,20 @@ func codeAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Убираем пароль из ответа
+	refreshToken, err := generateRefreshToken()
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	if err := storeRefreshToken(ctx, refreshToken, user.ID); err != nil {
+		log.Printf("Failed to store refresh token: %v", err)
+	}
 	userResponse := user
 	userResponse.PasswordHash = ""
-
 	response := TokenResponse{
 		AccessToken:  token,
-		RefreshToken: fmt.Sprintf("refresh.%s.%d", user.ID.Hex(), time.Now().Unix()+3600),
+		RefreshToken: refreshToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    86400,
 		User:         userResponse,
@@ -659,7 +735,266 @@ func codeAuthHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// OAuth URL handler
+func deviceCodeStartHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if redisClient == nil {
+		http.Error(w, "Device code auth not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	code, err := generateDeviceCode()
+	if err != nil {
+		http.Error(w, "Failed to generate device code", http.StatusInternalServerError)
+		return
+	}
+
+	key := "device_code:" + code
+	data := DeviceCodeData{Status: "pending"}
+	raw, _ := json.Marshal(data)
+
+	if err := redisClient.Set(ctx, key, raw, 5*time.Minute).Err(); err != nil {
+		http.Error(w, "Failed to store device code", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":       code,
+		"expires_in": 300,
+	})
+}
+
+func deviceCodeApproveHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if redisClient == nil {
+		http.Error(w, "Device code auth not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		http.Error(w, "Authorization header required", http.StatusUnauthorized)
+		return
+	}
+	accessToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	user, err := verifyToken(accessToken)
+	if err != nil {
+		http.Error(w, "Invalid access token", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Code == "" {
+		http.Error(w, "Invalid code", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	key := "device_code:" + req.Code
+	val, err := redisClient.Get(ctx, key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			http.Error(w, "Code not found or expired", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Redis error", http.StatusInternalServerError)
+		return
+	}
+
+	var data DeviceCodeData
+	if err := json.Unmarshal([]byte(val), &data); err != nil {
+		http.Error(w, "Invalid device code data", http.StatusInternalServerError)
+		return
+	}
+
+	if data.Status != "pending" {
+		http.Error(w, "Code already used or invalid", http.StatusBadRequest)
+		return
+	}
+
+	newAccessToken, err := generateToken(*user)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	newRefreshToken, err := generateRefreshToken()
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	if err := storeRefreshToken(ctx, newRefreshToken, user.ID); err != nil {
+		log.Printf("Failed to store refresh token for device code: %v", err)
+	}
+
+	data.Status = "approved"
+	data.UserID = user.ID.Hex()
+	data.AccessToken = newAccessToken
+	data.RefreshToken = newRefreshToken
+	raw, _ := json.Marshal(data)
+	if err := redisClient.Set(ctx, key, raw, 1*time.Minute).Err(); err != nil {
+		http.Error(w, "Failed to update device code", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Device code approved",
+	})
+}
+
+func deviceCodePollHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if redisClient == nil {
+		http.Error(w, "Device code auth not available", http.StatusServiceUnavailable)
+		return
+	}
+
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, "code is required", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	defer cancel()
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	key := "device_code:" + code
+
+	for {
+		select {
+		case <-ctx.Done():
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"status": "pending",
+			})
+			return
+		case <-ticker.C:
+			val, err := redisClient.Get(context.Background(), key).Result()
+			if err != nil {
+				if err == redis.Nil {
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(map[string]interface{}{
+						"status": "expired",
+					})
+					return
+				}
+				http.Error(w, "Redis error", http.StatusInternalServerError)
+				return
+			}
+
+			var data DeviceCodeData
+			if err := json.Unmarshal([]byte(val), &data); err != nil {
+				http.Error(w, "Invalid device code data", http.StatusInternalServerError)
+				return
+			}
+
+			if data.Status == "approved" {
+				objectID, err := primitive.ObjectIDFromHex(data.UserID)
+				if err != nil {
+					http.Error(w, "Invalid user id", http.StatusInternalServerError)
+					return
+				}
+
+				var user User
+				if err := usersColl.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&user); err != nil {
+					http.Error(w, "User not found", http.StatusInternalServerError)
+					return
+				}
+
+				userResponse := user
+				userResponse.PasswordHash = ""
+
+				response := TokenResponse{
+					AccessToken:  data.AccessToken,
+					RefreshToken: data.RefreshToken,
+					TokenType:    "Bearer",
+					ExpiresIn:    86400,
+					User:         userResponse,
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+		}
+	}
+}
+
+func refreshHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	if req.RefreshToken == "" {
+		http.Error(w, "refresh_token is required", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	user, err := getUserByRefreshToken(ctx, req.RefreshToken)
+	if err != nil {
+		http.Error(w, "Invalid or expired refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := generateToken(*user)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	userResponse := *user
+	userResponse.PasswordHash = ""
+
+	response := TokenResponse{
+		AccessToken:  token,
+		RefreshToken: req.RefreshToken,
+		TokenType:    "Bearer",
+		ExpiresIn:    86400,
+		User:         userResponse,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
 func oauthURLHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -699,12 +1034,10 @@ func oauthURLHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"url": authURL})
 }
 
-// OAuth callback handler
 func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
-	provider := r.URL.Query().Get("state") // Use state as provider identifier
+	provider := r.URL.Query().Get("state")
 	if provider == "" {
-		// Try to detect from redirect URI
 		if strings.Contains(r.URL.Path, "yandex") {
 			provider = "yandex"
 		} else if strings.Contains(r.URL.Path, "github") {
@@ -716,7 +1049,7 @@ func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing authorization code", http.StatusBadRequest)
 		return
 	}
-	
+
 	if provider == "" {
 		http.Error(w, "Missing provider", http.StatusBadRequest)
 		return
@@ -762,14 +1095,12 @@ func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Find or create user
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var user User
 	err = usersColl.FindOne(ctx, bson.M{"email": userEmail}).Decode(&user)
 	if err == mongo.ErrNoDocuments {
-		// Create new user
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("oauth_%s_%d", provider, time.Now().Unix())), bcrypt.DefaultCost)
 		user = User{
 			Username:     userName,
@@ -791,7 +1122,6 @@ func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate token
 	token, err := generateToken(user)
 	if err != nil {
 		log.Printf("Failed to generate token: %v", err)
@@ -799,7 +1129,6 @@ func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return HTML page that sends message to parent window
 	html := fmt.Sprintf(`
 		<!DOCTYPE html>
 		<html>
@@ -830,9 +1159,7 @@ func oauthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(html))
 }
 
-// Handle Yandex OAuth callback
 func handleYandexCallback(code string) (email, username string, err error) {
-	// Exchange code for token
 	data := url.Values{}
 	data.Set("grant_type", "authorization_code")
 	data.Set("code", code)
@@ -852,7 +1179,6 @@ func handleYandexCallback(code string) (email, username string, err error) {
 		return "", "", err
 	}
 
-	// Get user info
 	req, _ := http.NewRequest("GET", "https://login.yandex.ru/info", nil)
 	req.Header.Set("Authorization", "OAuth "+tokenResp.AccessToken)
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -883,9 +1209,7 @@ func handleYandexCallback(code string) (email, username string, err error) {
 	return email, username, nil
 }
 
-// Handle GitHub OAuth callback
 func handleGitHubCallback(code string) (email, username string, err error) {
-	// Exchange code for token
 	data := url.Values{}
 	data.Set("client_id", githubClientID)
 	data.Set("client_secret", githubClientSecret)
@@ -912,7 +1236,6 @@ func handleGitHubCallback(code string) (email, username string, err error) {
 		return "", "", fmt.Errorf("no access token")
 	}
 
-	// Get user info
 	req, _ := http.NewRequest("GET", "https://api.github.com/user", nil)
 	req.Header.Set("Authorization", "token "+accessToken)
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -931,7 +1254,6 @@ func handleGitHubCallback(code string) (email, username string, err error) {
 		return "", "", err
 	}
 
-	// Get email if not in public profile
 	if userInfo.Email == "" {
 		req, _ = http.NewRequest("GET", "https://api.github.com/user/emails", nil)
 		req.Header.Set("Authorization", "token "+accessToken)
@@ -968,7 +1290,6 @@ func handleGitHubCallback(code string) (email, username string, err error) {
 	return email, username, nil
 }
 
-// Роутер
 func router(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	method := r.Method
@@ -987,6 +1308,14 @@ func router(w http.ResponseWriter, r *http.Request) {
 		loginHandler(w, r)
 	case path == "/api/v1/verify":
 		verifyHandler(w, r)
+	case path == "/api/v1/refresh":
+		refreshHandler(w, r)
+	case path == "/api/v1/device-code/start":
+		deviceCodeStartHandler(w, r)
+	case path == "/api/v1/device-code/approve":
+		deviceCodeApproveHandler(w, r)
+	case path == "/api/v1/device-code/poll":
+		deviceCodePollHandler(w, r)
 	case path == "/api/v1/code/send" || path == "/api/v1/code/verify":
 		codeAuthHandler(w, r)
 	case strings.HasPrefix(path, "/api/v1/oauth/") && strings.HasSuffix(path, "/url"):
@@ -1007,26 +1336,20 @@ func router(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Инициализация JWT секрета
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "your-super-secret-jwt-key-change-in-production"
 	}
 	jwtSecret = []byte(secret)
 
-	// Инициализация OAuth
 	initOAuth()
 
-	// Инициализация базы данных
-	initDB()
+	initRedis()
 
-	// Настраиваем сервер
+	initDB()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", router)
-
-	// Обертываем в CORS middleware
 	handler := corsMiddleware(mux)
-
 	port := ":8080"
 
 	log.Println("🚀 Auth Module starting on port 8080")
