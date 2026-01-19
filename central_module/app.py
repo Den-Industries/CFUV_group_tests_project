@@ -234,9 +234,10 @@ async def delete_test(
 @app.get("/tests/{test_id}/questions")
 async def get_test_questions(
     test_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role("admin"))
 ):
-    """Получение вопросов теста"""
+    """Получение вопросов теста (полная информация, только для админа)"""
     test = db.query(models.Test).filter(models.Test.id == test_id).first()
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
@@ -252,6 +253,40 @@ async def get_test_questions(
             "id": a.id,
             "answer_text": a.answer_text,
             "is_correct": a.is_correct,
+            "order_index": a.order_index
+        } for a in answers]
+        
+        question_data = {
+            "id": q.id,
+            "test_id": q.test_id,
+            "question_text": q.question_text,
+            "question_type": q.question_type,
+            "points": q.points,
+            "answers": answers_data
+        }
+        result.append(question_data)
+    
+    return result
+
+
+@app.get("/tests/{test_id}/questions/public")
+async def get_test_questions_public(
+    test_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение вопросов теста для пользователей (без правильных ответов)"""
+    test = db.query(models.Test).filter(models.Test.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    questions = db.query(models.Question).filter(models.Question.test_id == test_id).all()
+    
+    result = []
+    for q in questions:
+        answers = db.query(models.Answer).filter(models.Answer.question_id == q.id).all()
+        answers_data = [{
+            "id": a.id,
+            "answer_text": a.answer_text,
             "order_index": a.order_index
         } for a in answers]
         

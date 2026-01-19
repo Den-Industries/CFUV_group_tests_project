@@ -80,5 +80,11 @@ ON CONFLICT (auth_id) DO NOTHING;
 ALTER TABLE survey.users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);
 ALTER TABLE survey.users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;
 
+-- Обновляем существующих пользователей (пароль для обоих: "password")
+UPDATE survey.users SET 
+    password_hash = '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW',
+    last_login = CURRENT_TIMESTAMP
+WHERE username IN ('admin', 'testuser');
+
 -- Убедимся, что пароль установлен
 SELECT id, username, email, role, password_hash IS NOT NULL as has_password FROM survey.users;

@@ -74,6 +74,7 @@ services:
     build:
       context: ./telegram_bot
     environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       REDIS_URL: "redis://redis:6379"
       AUTH_API: "http://auth_module:8080/api/v1"
       CENTRAL_API: "http://central_module:8000"
